@@ -1,37 +1,30 @@
 // src/hooks/useQuizGenerator.js
 import { useState, useCallback } from 'react';
-import { fetchAIQuestions } from '../ai/fetchQuestions'; // Adjust path as needed
+import { fetchAIQuestions } from '../ai/fetchQuestions'; // Adjust path if needed
 
-export function useQuizGenerator() {
+export const useQuizGenerator = () => {
   const [questions, setQuestions] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const generateQuiz = useCallback(async (subject, topic, numberOfQuestions = 5) => {
-    if (isLoading) {
-      console.warn("Quiz generation already in progress.");
-      return; // Return null or some indicator that it didn't run
-    }
-    console.log(`✨ Starting quiz generation for Subject: ${subject}, Topic: ${topic}`);
+  // Modified generateQuiz function
+  const generateQuiz = useCallback(async (grade, examType, subject, topic, numberOfQuestions = 5) => {
     setIsLoading(true);
     setError(null);
     setQuestions(null); // Clear previous questions
-
+    console.log(`Hook: Generating quiz for Grade: ${grade}, Exam: ${examType}, Subject: ${subject}, Topic: ${topic}`);
     try {
-      const fetchedQuestions = await fetchAIQuestions(subject, topic, numberOfQuestions);
+      // Pass all relevant details to the fetch function
+      const fetchedQuestions = await fetchAIQuestions(grade, examType, subject, topic, numberOfQuestions);
       setQuestions(fetchedQuestions);
-      // Indicate success or return questions if needed by the caller
-      return fetchedQuestions;
     } catch (err) {
-      console.error("Hook caught error during quiz generation:", err);
-      setError(err.message || "An unknown error occurred while generating the quiz.");
-      setQuestions(null);
-      throw err; // Re-throw the error so the caller component knows it failed
+      console.error("Hook: Error fetching questions:", err);
+      setError(err.message || 'Failed to fetch questions');
+      setQuestions(null); // Ensure questions are null on error
     } finally {
       setIsLoading(false);
-      console.log("🏁 Quiz generation process finished.");
     }
-  }, [isLoading]); // Dependency: isLoading
+  }, []); // Dependencies remain empty as it defines the function structure
 
   const clearQuiz = useCallback(() => {
     setQuestions(null);
@@ -39,11 +32,5 @@ export function useQuizGenerator() {
     setIsLoading(false);
   }, []);
 
-  return {
-    questions,
-    isLoading,
-    error,
-    generateQuiz,
-    clearQuiz,
-  };
-}
+  return { questions, isLoading, error, generateQuiz, clearQuiz };
+};

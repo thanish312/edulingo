@@ -30,37 +30,35 @@ const safetySettings = [
   { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
 ];
 
-export async function fetchAIQuestions(subject, topic, numberOfQuestions = 5) {
-  if (!API_KEY) {
-    throw new Error("Gemini API key is not configured.");
-  }
-  if (!subject || !topic) {
-    throw new Error("Subject and Topic are required.");
-  }
+export async function fetchAIQuestions(grade, examType, subject, topic, numberOfQuestions = 5) {
+  if (!API_KEY) throw new Error("Gemini API key is not configured.");
+  if (!grade || !examType || !subject || !topic) throw new Error("Grade, Exam Type, Subject, and Topic are required.");
 
-  console.log(`🚀 Fetching AI questions for Subject: ${subject}, Topic: ${topic}`);
+  console.log(`🚀 Fetching AI questions for Grade: ${grade}, Exam: ${examType}, Subject: ${subject}, Topic: ${topic}`);
 
-    // Inside the fetchAIQuestions function...
-    try {
-      // Prompt generation (ensure 'prompt' variable is defined correctly above this block)
-      const prompt = `
-  Generate exactly ${numberOfQuestions} multiple-choice quiz questions for the subject "${subject}" and topic "${topic}".
-  Return the output STRICTLY as CSV text with these exact headers on the first line:
-  question,optionA,optionB,optionC,optionD,correct,topic
-  
-  Each subsequent line must follow this exact format, enclosed in double quotes where necessary:
-  "Question text?","Option A","Option B","Option C","Option D","Correct Option Letter (e.g., C)","${topic}"
-  
-  RULES:
-  - Only return the header line and the ${numberOfQuestions} question lines.
-  - Do NOT include any introduction, explanation, apologies, or markdown formatting like \`\`\`csv or \`\`\`.
-  - Ensure the 'correct' column contains only the letter (A, B, C, or D) of the correct option.
-  - Ensure the 'topic' column consistently contains "${topic}".
-  - Double-check quotes: Use double quotes around fields containing commas or newlines.
-  
-  Example of ONE line:
-  "What is the powerhouse of the cell?","Mitochondria","Nucleus","Ribosome","Chloroplast","A","Biology"
-  `;
+  try {
+    // --- *** THE CRUCIAL PROMPT UPDATE *** ---
+    const prompt = `
+Generate exactly ${numberOfQuestions} multiple-choice quiz questions suitable for a student in ${grade} preparing for the ${examType} exam, focusing specifically on the subject "${subject}" and the topic "${topic}".
+
+Return the output STRICTLY as CSV text with these exact headers on the first line:
+question,optionA,optionB,optionC,optionD,correct,topic
+
+Each subsequent line must follow this exact format, enclosed in double quotes where necessary:
+"Question text?","Option A","Option B","Option C","Option D","Correct Option Letter (e.g., C)","${topic}"
+
+RULES:
+- Target the difficulty and style appropriate for ${grade} students aiming for the ${examType} exam.
+- Ensure questions are specific to the topic "${topic}" within the subject "${subject}".
+- Only return the header line and the ${numberOfQuestions} question lines.
+- Do NOT include any introduction, explanation, apologies, or markdown formatting like \`\`\`csv or \`\`\`.
+- Ensure the 'correct' column contains only the single capital letter (A, B, C, or D) of the correct option.
+- Ensure the 'topic' column consistently contains "${topic}".
+- Double-check quotes: Use double quotes around fields containing commas or newlines. If an option itself contains a quote, escape it properly (e.g., "Answer with a \\"quote\\"").
+
+Example of ONE line (adjust content based on inputs):
+"What is the electric field inside a uniformly charged spherical shell?","Constant non-zero","Zero","Varies with radius","Depends on charge density","B","Electrostatics"
+`;
   
       // API Call
       const result = await genAI.models.generateContent({
