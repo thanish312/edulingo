@@ -5,7 +5,7 @@ import { parseCSVtoQuestions } from "./parseCSV"; // Ensure this path is correct
 // Initialize the Gemini client ONCE
 // IMPORTANT: VITE_ variables are embedded at build time and exposed client-side.
 // For production, consider a backend proxy to protect your API key.
-const API_KEY = "AIzaSyA2FCf0uM7zx7UG5V4PTfKE89t9p4mnlxs";
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 if (!API_KEY) {
   console.error("❌ Missing VITE_GEMINI_API_KEY in your .env file");
