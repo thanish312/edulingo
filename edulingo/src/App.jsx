@@ -5,21 +5,28 @@ import Learn from './pages/Learn';
 import Quiz from './pages/Quiz';
 import Mistakes from './pages/Mistakes';
 import { AppProvider } from './context/AppContext';
+import React from "react";
+import Navbar from "./components/Navbar";
 
 function App() {
   return (
     <AppProvider>
-      {/* Added a wrapper div for testing */}
-      <div className="bg-red-500 min-h-screen"> {/* <-- ADD TEST CLASSES HERE */}
+      <div className="bg-zinc-900 min-h-screen text-white font-sans">
         <Router>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/learn" element={<Learn />} />
-            <Route path="/quiz" element={<Quiz />} />
-            <Route path="/mistakes" element={<Mistakes />} />
-          </Routes>
+          {/* Navbar */}
+          <Navbar />
+
+          {/* Main Content */}
+          <div className="p-6">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/learn" element={<Learn />} />
+              <Route path="/quiz" element={<Quiz />} />
+              <Route path="/mistakes" element={<Mistakes />} />
+            </Routes>
+          </div>
         </Router>
-      </div> {/* Close the wrapper div */}
+      </div>
     </AppProvider>
   );
 }

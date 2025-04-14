@@ -1,11 +1,16 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext'; // Import useApp
+import { withAuthenticationRequired, useAuth0 } from "@auth0/auth0-react";
+import LoginButton from "../components/LoginButton";
+import LogoutButton from "../components/LogoutButton";
+import Profile from "../components/Profile";
 
 function Dashboard() {
     const navigate = useNavigate();
     // Get ALL relevant data from context
     const { xp, streak, lastPracticed, quizHistory, stats, isInitialized } = useApp();
+    const { isAuthenticated } = useAuth0();
 
     const handleContinueLearning = () => {
         if (lastPracticed) {
@@ -36,22 +41,42 @@ function Dashboard() {
                 <div className="lg:col-span-1 bg-zinc-800 p-6 rounded-xl shadow-lg flex flex-col justify-between">
                     <div>
                         <h2 className="text-2xl font-semibold mb-4 text-blue-400">Welcome Back!</h2>
+
+                        {/* Profile Section */}
+                        {isAuthenticated ? (
+                            <Profile />
+                        ) : (
+                            <div className="mb-6">
+                                <p className="text-gray-400 mb-4">
+                                    Please log in to access your personalized dashboard.
+                                </p>
+                                <LoginButton />
+                            </div>
+                        )}
+
                         {/* Streak Display */}
-                        <p className="text-lg mb-4"><span className="text-xl">🔥</span> Streak: <span className="font-bold text-orange-400">{streak}</span> days</p>
+                        {isAuthenticated && (
+                            <p className="text-lg mt-4">
+                                <span className="text-xl">🔥</span> Streak:{" "}
+                                <span className="font-bold text-orange-400">{streak}</span> days
+                            </p>
+                        )}
 
                         {/* XP Progress Bar */}
-                        <div className="mb-6">
-                            <div className="flex justify-between text-sm mb-1 text-zinc-400">
-                                <span>Level Progress</span>
-                                <span>XP: {xp} / 1000</span> {/* Adjust max XP if needed */}
+                        {isAuthenticated && (
+                            <div className="mt-6">
+                                <div className="flex justify-between text-sm mb-1 text-zinc-400">
+                                    <span>Level Progress</span>
+                                    <span>XP: {xp} / 1000</span> {/* Adjust max XP if needed */}
+                                </div>
+                                <div className="w-full bg-zinc-700 h-4 rounded-full overflow-hidden">
+                                    <div className="bg-green-500 h-4 transition-all duration-500 ease-out" style={{ width: `${Math.min(100, (xp % 1000) / 10)}%` }} /> {/* Cap width at 100% */}
+                                </div>
                             </div>
-                            <div className="w-full bg-zinc-700 h-4 rounded-full overflow-hidden">
-                                <div className="bg-green-500 h-4 transition-all duration-500 ease-out" style={{ width: `${Math.min(100, (xp % 1000) / 10)}%` }} /> {/* Cap width at 100% */}
-                            </div>
-                        </div>
+                        )}
 
                         {/* Last Practiced Info */}
-                        {lastPracticed ? (
+                        {isAuthenticated && lastPracticed ? (
                             <div className="mt-4 pt-4 border-t border-zinc-700">
                                 <p className="text-zinc-400 mb-1 text-sm">Continue where you left off?</p>
                                 <p className="text-zinc-200 font-medium">
@@ -63,19 +88,22 @@ function Dashboard() {
                             <p className="text-zinc-400 mt-4 pt-4 border-t border-zinc-700">Ready to start learning?</p>
                         )}
                     </div>
-                    <div className="mt-6 space-y-3">
-                        {lastPracticed && (
-                            <button
-                                onClick={handleContinueLearning}
-                                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 text-base"
-                            >
-                                Go to Learn Page
-                            </button>
-                        )}
-                        <Link to="/learn" className="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 text-base">
-                            {lastPracticed ? 'Start New Session' : 'Start Learning'}
-                        </Link>
-                    </div>
+                    {isAuthenticated && (
+                        <div className="mt-6 space-y-3">
+                            {lastPracticed && (
+                                <button
+                                    onClick={handleContinueLearning}
+                                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 text-base"
+                                >
+                                    Go to Learn Page
+                                </button>
+                            )}
+                            <Link to="/learn" className="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 text-base">
+                                {lastPracticed ? 'Start New Session' : 'Start Learning'}
+                            </Link>
+                            <LogoutButton />
+                        </div>
+                    )}
                 </div>
 
                 {/* Column 2: Stats & Recent Activity */}
@@ -137,4 +165,6 @@ function Dashboard() {
     );
 }
 
-export default Dashboard;
+export default withAuthenticationRequired(Dashboard, {
+  onRedirecting: () => <div>Loading...</div>,
+});

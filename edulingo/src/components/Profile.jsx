@@ -3,26 +3,24 @@ import React from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 
 const Profile = () => {
-  // Note: isLoading should be checked before isAuthenticated or accessing user
   const { user, isAuthenticated, isLoading } = useAuth0();
 
-  // While the SDK is loading, display a loading message or spinner
   if (isLoading) {
-    return <div className="text-sm text-gray-300">Loading user...</div>;
+    return <div className="text-center text-gray-400">Loading...</div>;
   }
 
-  // Only render the profile information if the user is authenticated
   return (
-    isAuthenticated && user && ( // Added 'user' check for extra safety
-      <div className="flex items-center space-x-3">
+    isAuthenticated && (
+      <div className="flex items-center space-x-4 bg-zinc-800 p-4 rounded-lg shadow-lg">
         <img
-            src={user.picture}
-            alt={user.name}
-            className="w-8 h-8 rounded-full border border-gray-300" // Example styling
-         />
-        {/* Optionally display name/email */}
-        {/* <span className="text-sm font-medium hidden sm:block">{user.name}</span> */}
-        {/* <span className="text-xs text-gray-300 hidden md:block">{user.email}</span> */}
+          src={user.picture}
+          alt={user.name}
+          className="w-12 h-12 rounded-full border-2 border-blue-500"
+        />
+        <div>
+          <h2 className="text-lg font-semibold text-blue-300">{user.name}</h2>
+          <p className="text-sm text-gray-400">{user.email}</p>
+        </div>
       </div>
     )
   );

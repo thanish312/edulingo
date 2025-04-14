@@ -5,11 +5,10 @@ import { useAuth0 } from "@auth0/auth0-react";
 const LoginButton = () => {
   const { loginWithRedirect } = useAuth0();
 
-  // Basic styling example - adjust Tailwind classes as needed
   return (
     <button
       onClick={() => loginWithRedirect()}
-      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-700 focus:ring-opacity-50"
+      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 text-base shadow-lg"
     >
       Log In
     </button>
