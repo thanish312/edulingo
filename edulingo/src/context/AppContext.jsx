@@ -1,11 +1,31 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import axios from "axios";
 
 // Helper function to get start of day
 const getStartOfDay = (date = new Date()) => {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);
     return start.getTime(); // Return timestamp for easier comparison
+};
+
+const saveProgressToBackend = async (progress) => {
+  try {
+    const response = await axios.post("http://localhost:5000/api/progress", progress);
+    console.log("Progress saved:", response.data);
+  } catch (error) {
+    console.error("Error saving progress:", error);
+  }
+};
+
+const fetchProgressFromBackend = async (userId) => {
+  try {
+    const response = await axios.get(`http://localhost:5000/api/progress/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching progress:", error);
+    return null;
+  }
 };
 
 const AppContext = createContext();
@@ -55,6 +75,24 @@ export const AppProvider = ({ children }) => {
         }
     }, [isAuthenticated, user]);
 
+    useEffect(() => {
+      const loadProgress = async () => {
+        if (isAuthenticated && user) {
+          const userId = user.sub; // Auth0 unique user ID
+          const progress = await fetchProgressFromBackend(userId);
+          if (progress) {
+            setXp(progress.xp);
+            setStreak(progress.streak);
+            setLastPracticed(progress.lastPracticed);
+            setQuizHistory(progress.quizHistory);
+          }
+        }
+        setIsInitialized(true);
+      };
+    
+      loadProgress();
+    }, [isAuthenticated, user]);
+
     // --- Save Data to localStorage ---
     const saveToLocalStorage = useCallback((key, value) => {
         try {
@@ -71,9 +109,21 @@ export const AppProvider = ({ children }) => {
         setXp((prevXp) => {
             const newXp = prevXp + amount;
             saveToLocalStorage('userXp', newXp);
+
+            // Save progress to backend
+            if (isAuthenticated && user) {
+              saveProgressToBackend({
+                userId: user.sub,
+                xp: newXp,
+                streak,
+                lastPracticed,
+                quizHistory,
+              });
+            }
+
             return newXp;
         });
-    }, [isInitialized, saveToLocalStorage]);
+    }, [isInitialized, saveToLocalStorage, isAuthenticated, user, streak, lastPracticed, quizHistory]);
 
     const updateStreak = useCallback(() => {
         if (!isInitialized) return;
